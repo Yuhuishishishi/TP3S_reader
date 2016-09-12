@@ -39,6 +39,8 @@ public class DataInstance {
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
+        assert tests != null;
+        assert vehicles != null;
 
         instance = new DataInstance();
         instance.testArr = tests.stream().sorted((t1,t2)->t1.getTid()-t2.getTid())
@@ -49,9 +51,7 @@ public class DataInstance {
 
         instance.testIdToTtestMap = new HashMap<>();
         instance.vehicleIdToVehicleMap = new HashMap<>();
-        assert tests != null;
         tests.forEach(test -> instance.testIdToTtestMap.put(test.getTid(), test));
-        assert vehicles != null;
         vehicles.forEach(vehicle -> instance.vehicleIdToVehicleMap.put(vehicle.getVid(), vehicle));
     }
 
