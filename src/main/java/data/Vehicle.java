@@ -2,11 +2,13 @@ package data;
 
 /**
  * Created by yuhui on 8/5/2016.
+ * University of Michigan
+ * Academic use only
  */
-public class Vehicle {
+class Vehicle {
 
-    private int vid;
-    private int release;
+    private final int vid;
+    private final int release;
 
     public Vehicle(int vid, int release) {
         this.vid = vid;

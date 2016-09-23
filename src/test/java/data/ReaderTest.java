@@ -8,10 +8,12 @@ import static org.junit.Assert.*;
 
 /**
  * Created by yuhui on 8/8/2016.
+ * University of Michigan
+ * Academic use only
  */
 public class ReaderTest {
 
-    private String filepath = "C:\\Users\\yuhui\\Desktop\\TP3S_cp\\data\\157 - orig.tp3s";
+    private final String filepath = "C:\\Users\\yuhui\\Desktop\\TP3S_cp\\data\\157 - orig.tp3s";
 
     @Test
     public void testGetTests() throws Exception {

@@ -7,11 +7,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
  * Created by yuhui on 8/5/2016.
+ * University of Michigan
+ * Academic use only
  */
 public class DataInstance {
 

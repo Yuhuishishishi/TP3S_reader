@@ -12,11 +12,13 @@ import java.util.*;
 
 /**
  * Created by yuhui on 8/5/2016.
+ * University of Michigan
+ * Academic use only
  */
 public class Reader {
 
-    private String filePath;
-    private JSONParser parser;
+    private final String filePath;
+    private final JSONParser parser;
 
     public Reader(String filePath) {
         this.filePath = filePath;
@@ -27,7 +29,7 @@ public class Reader {
         JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
 
         JSONArray testArr = (JSONArray) obj.get("tests");
-        List<TestRequest> testList = new ArrayList<TestRequest>();
+        List<TestRequest> testList = new ArrayList<>();
         for (Object aTestArr : testArr) {
             JSONObject testObj = (JSONObject) aTestArr;
 
@@ -52,7 +54,7 @@ public class Reader {
         JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
 
         JSONArray vehicleArr = (JSONArray) obj.get("vehicles");
-        List<Vehicle> vehicleList = new ArrayList<Vehicle>();
+        List<Vehicle> vehicleList = new ArrayList<>();
 
         for (Object aVehicleArr : vehicleArr) {
             JSONObject vehicleObj = (JSONObject) aVehicleArr;
@@ -71,12 +73,12 @@ public class Reader {
         JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
         JSONObject rehitObj = (JSONObject) obj.get("rehit");
 
-        Map<Integer, Map<Integer, Boolean>> rehitMap = new HashMap<Integer, Map<Integer, Boolean>>();
+        Map<Integer, Map<Integer, Boolean>> rehitMap = new HashMap<>();
         Set entrySet = rehitObj.entrySet();
         for (Object anEntrySet : entrySet) {
             Map.Entry entry = (Map.Entry) anEntrySet;
             int key1 = Integer.valueOf((String) entry.getKey());
-            rehitMap.put(key1, new HashMap<Integer, Boolean>());
+            rehitMap.put(key1, new HashMap<>());
             JSONObject nestedObj = (JSONObject) entry.getValue();
             for (Object elem : nestedObj.entrySet()) {
                 Map.Entry e2 = (Map.Entry) elem;

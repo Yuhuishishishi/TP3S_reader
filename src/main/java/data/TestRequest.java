@@ -2,15 +2,17 @@ package data;
 
 /**
  * Created by yuhui on 8/5/2016.
+ * University of Michigan
+ * Academic use only
  */
 public class TestRequest {
 
-    private int tid;
-    private int release;
-    private int prep;
-    private int tat;
-    private int analysis;
-    private int deadline;
+    private final int tid;
+    private final int release;
+    private final int prep;
+    private final int tat;
+    private final int analysis;
+    private final int deadline;
 
     public TestRequest(int tid, int release,
                        int prep, int tat, int analysis, int deadline) {
