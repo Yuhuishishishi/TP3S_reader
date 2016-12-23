@@ -66,6 +66,7 @@ public class Reader {
             vehicleList.add(newVehicle);
         }
 
+        System.out.println("# vehicles read in: " + vehicleList.size() );
         return vehicleList;
     }
 
@@ -88,6 +89,17 @@ public class Reader {
             }
         }
 
+        // compute the density of the compatibility matrix
+        int numEntries = 0;
+        int numOnes = 0;
+        for (Map<Integer, Boolean> nestedMap : rehitMap.values()) {
+            numEntries += nestedMap.size();
+            for (Boolean rule : nestedMap.values()) {
+                if (rule) numOnes++;
+            }
+        }
+        double density = 1.0 - (double) numOnes / numEntries;
+        System.out.println("Density: " + density);
         return rehitMap;
     }
 }
