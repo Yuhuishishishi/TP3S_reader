@@ -126,7 +126,10 @@ public class DataInstance {
                 .getTestArr().stream().mapToInt(TestRequest::getDur).max().getAsInt();
         int latestDeadline = DataInstance.getInstance()
                 .getTestArr().stream().mapToInt(TestRequest::getDeadline).max().getAsInt();
+        int latestReleaseDay = DataInstance.getInstance()
+                .getTestArr().stream().mapToInt(TestRequest::getRelease).max().getAsInt();
+        latestDeadline = Math.max(latestDeadline, latestReleaseDay);
         final int timeSlack = 50;
-        return latestDeadline + longestDur + timeSlack;
+        return latestDeadline + longestDur*2 + timeSlack;
     }
 }
