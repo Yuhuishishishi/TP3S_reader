@@ -3,10 +3,7 @@ package data;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -17,62 +14,88 @@ import java.util.stream.Collectors;
 public class DataInstance {
 
     private static DataInstance instance = null;
-    private List<TestRequest> testArr;
-    private List<Vehicle> vehicleArr;
-    private Map<Integer, Map<Integer, Boolean>> rehitRules;
+    private static Map<String, DataInstance> instanceMap = null;
 
-    private Map<Integer, TestRequest> testIdToTtestMap;
-    private Map<Integer, Vehicle> vehicleIdToVehicleMap;
+    private final String instID;
 
-    private DataInstance () {
+    private final List<TestRequest> testArr;
+    private final List<Vehicle> vehicleArr;
+    private final Map<Integer, Map<Integer, Boolean>> rehitRules;
 
+    private final Map<Integer, TestRequest> testIdToTtestMap;
+    private final Map<Integer, Vehicle> vehicleIdToVehicleMap;
+
+    protected DataInstance(String instID, List<TestRequest> tests, List<Vehicle> vehicles,
+                           Map<Integer, Map<Integer, Boolean>> rehitRules) {
+        this.instID = instID;
+        this.testArr = tests;
+        this.vehicleArr = vehicles;
+        this.rehitRules = rehitRules;
+
+        testIdToTtestMap = new HashMap<>();
+        vehicleIdToVehicleMap = new HashMap<>();
+
+        // build the maps
+        tests.forEach(test -> testIdToTtestMap.put(test.getTid(), test));
+        vehicles.forEach(vehicle -> vehicleIdToVehicleMap.put(vehicle.getVid(), vehicle));
     }
 
     public static void init(Reader reader) {
+        instanceMap = new HashMap<>();
 
-        List<TestRequest> tests = null;
-        List<Vehicle> vehicles = null;
-        Map<Integer, Map<Integer, Boolean>> rules = null;
         try {
-            tests = reader.getTests();
-            vehicles = reader.getVehicles();
-            rules = reader.getRehitRules();
-        } catch (IOException | ParseException e) {
+            List<DataInstance> dataInstances = reader.readInstances();
+            dataInstances.forEach(inst->instanceMap.put(inst.instID, inst));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
             e.printStackTrace();
         }
-        assert tests != null;
-        assert vehicles != null;
 
-        instance = new DataInstance();
-        instance.testArr = tests.stream().sorted((t1,t2)->t1.getTid()-t2.getTid())
-                .collect(Collectors.toList());
-        instance.vehicleArr = vehicles.stream().sorted((v1,v2)->v1.getRelease()-v2.getRelease())
-                .collect(Collectors.toList());
-        instance.rehitRules = rules;
+        if (instanceMap.size()==1) {
+            instance = instanceMap.values().iterator().next();
+        }
 
-        instance.testIdToTtestMap = new HashMap<>();
-        instance.vehicleIdToVehicleMap = new HashMap<>();
-        tests.forEach(test -> instance.testIdToTtestMap.put(test.getTid(), test));
-        vehicles.forEach(vehicle -> instance.vehicleIdToVehicleMap.put(vehicle.getVid(), vehicle));
+        System.out.println("# instances: " + instanceMap.size());
     }
 
     public static DataInstance getInstance() {
+
         if (DataInstance.instance == null) {
-            System.err.println("Data instance called while uninitialized.");
+            System.err.println("Data instance called while uninitialized.\n" +
+                    "or multiple instances read in.");
         }
 
         return DataInstance.instance;
     }
 
-    public boolean getRelation(int tid1, int tid2) throws IllegalArgumentException{
-        if (!rehitRules.containsKey(tid1)) {
-            throw new IllegalArgumentException(tid1 + " is not a valid tid.");
-        }
+    public static DataInstance getInstance(String instID) {
+        assert instanceMap.containsKey(instID);
+        return instanceMap.get(instID);
+    }
 
-        Map<Integer, Boolean> nested = getInstance().rehitRules.get(tid1);
-        if (!nested.containsKey(tid2)) {
-            throw new IllegalArgumentException(tid1 + ", " + tid2 + " is not a valid tid pair.");
-        }
+    public static List<String> getInstIds() {
+        return new ArrayList<>(instanceMap.keySet());
+    }
+
+    public static int getHorizonStartGlobal() {
+        OptionalInt minStart = instanceMap.values().stream().mapToInt(DataInstance::getHorizonStart).min();
+        assert minStart.isPresent();
+        return minStart.getAsInt();
+    }
+
+    public static int getHorizonEndGlobal() {
+        OptionalInt maxEnd = instanceMap.values().stream().mapToInt(DataInstance::getHorizonEnd).max();
+        assert maxEnd.isPresent();
+        return maxEnd.getAsInt();
+    }
+
+    public boolean getRelation(int tid1, int tid2) throws IllegalArgumentException{
+        assert rehitRules.containsKey(tid1);
+
+        Map<Integer, Boolean> nested = rehitRules.get(tid1);
+        assert nested.containsKey(tid2);
 
         return rehitRules.get(tid1).get(tid2);
 
@@ -101,7 +124,7 @@ public class DataInstance {
     }
 
 
-    public static boolean isSeqCompWithTest(List<Integer> seq, int newTid) {
+    public boolean isSeqCompWithTest(List<Integer> seq, int newTid) {
         if (seq.size()==0)
             return true;
 
@@ -109,7 +132,7 @@ public class DataInstance {
             return false;
 
         for (int tid : seq) {
-            if (!DataInstance.getInstance().getRelation(tid, newTid))
+            if (!this.getRelation(tid, newTid))
                 return false;
         }
 
@@ -118,18 +141,19 @@ public class DataInstance {
 
     public int getHorizonStart() {
         // get the length of the planning horizon
-        return Collections.min(DataInstance.getInstance().getVehicleReleaseList());
+        return Collections.min(getVehicleReleaseList());
     }
 
     public int getHorizonEnd() {
-        int longestDur = DataInstance.getInstance()
-                .getTestArr().stream().mapToInt(TestRequest::getDur).max().getAsInt();
-        int latestDeadline = DataInstance.getInstance()
-                .getTestArr().stream().mapToInt(TestRequest::getDeadline).max().getAsInt();
-        int latestReleaseDay = DataInstance.getInstance()
-                .getTestArr().stream().mapToInt(TestRequest::getRelease).max().getAsInt();
+        int longestDur = getTestArr().stream().mapToInt(TestRequest::getDur).max().getAsInt();
+        int latestDeadline =getTestArr().stream().mapToInt(TestRequest::getDeadline).max().getAsInt();
+        int latestReleaseDay = getTestArr().stream().mapToInt(TestRequest::getRelease).max().getAsInt();
         latestDeadline = Math.max(latestDeadline, latestReleaseDay);
         final int timeSlack = 50;
         return latestDeadline + longestDur*2 + timeSlack;
+    }
+
+    public String getInstID() {
+        return instID;
     }
 }

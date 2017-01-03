@@ -5,6 +5,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -25,8 +26,35 @@ public class Reader {
         parser = new JSONParser();
     }
 
-    public List<TestRequest> getTests() throws IOException, ParseException {
-        JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
+    public List<DataInstance> readInstances() throws IOException, ParseException {
+        List<DataInstance> result = new ArrayList<>();
+        JSONArray instArr = (JSONArray) this.parser.parse(new FileReader(this.filePath));
+        for (Object inst : instArr) {
+            JSONObject instJson = (JSONObject) inst;
+            List<TestRequest> tests = getTests(instJson);
+            List<Vehicle> vehicles = getVehicles(instJson);
+            Map<Integer, Map<Integer, Boolean>> rehits = getRehitRules(instJson);
+            String instID = (String) instJson.get("inst_id");
+
+            DataInstance dataInstance = new DataInstance(instID,
+                    tests, vehicles, rehits);
+            result.add(dataInstance);
+        }
+
+        return result;
+
+    }
+
+
+
+    private
+    List<TestRequest> getTests(JSONObject instObj) throws IOException, ParseException {
+        JSONObject obj;
+        if (null == instObj) {
+            obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
+        } else {
+            obj = instObj;
+        }
 
         JSONArray testArr = (JSONArray) obj.get("tests");
         List<TestRequest> testList = new ArrayList<>();
@@ -50,9 +78,14 @@ public class Reader {
         return testList;
     }
 
-    public List<Vehicle> getVehicles() throws IOException, ParseException {
-        JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
-
+    private
+    List<Vehicle> getVehicles(JSONObject instObj) throws IOException, ParseException {
+        JSONObject obj;
+        if (null == instObj) {
+            obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
+        } else {
+            obj = instObj;
+        }
         JSONArray vehicleArr = (JSONArray) obj.get("vehicles");
         List<Vehicle> vehicleList = new ArrayList<>();
 
@@ -70,8 +103,14 @@ public class Reader {
         return vehicleList;
     }
 
-    public Map<Integer, Map<Integer, Boolean>> getRehitRules() throws IOException, ParseException {
-        JSONObject obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
+    private
+    Map<Integer, Map<Integer, Boolean>> getRehitRules(JSONObject instObj) throws IOException, ParseException {
+        JSONObject obj;
+        if (null == instObj) {
+            obj = (JSONObject) this.parser.parse(new FileReader(this.filePath));
+        } else {
+            obj = instObj;
+        }
         JSONObject rehitObj = (JSONObject) obj.get("rehit");
 
         Map<Integer, Map<Integer, Boolean>> rehitMap = new HashMap<>();
