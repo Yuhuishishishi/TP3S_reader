@@ -42,6 +42,7 @@ public class DataInstance {
 
     public static void init(Reader reader) {
         instanceMap = new HashMap<>();
+        instance = null;
 
         try {
             List<DataInstance> dataInstances = reader.readInstances();
