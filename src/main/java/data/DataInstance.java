@@ -25,6 +25,8 @@ public class DataInstance {
     private final Map<Integer, TestRequest> testIdToTtestMap;
     private final Map<Integer, Vehicle> vehicleIdToVehicleMap;
 
+    private int horizonEnd;
+
     protected DataInstance(String instID, List<TestRequest> tests, List<Vehicle> vehicles,
                            Map<Integer, Map<Integer, Boolean>> rehitRules) {
         this.instID = instID;
@@ -38,6 +40,8 @@ public class DataInstance {
         // build the maps
         tests.forEach(test -> testIdToTtestMap.put(test.getTid(), test));
         vehicles.forEach(vehicle -> vehicleIdToVehicleMap.put(vehicle.getVid(), vehicle));
+
+        horizonEnd = getHorizonEndBasedOnDeadline();
     }
 
     public static void init(Reader reader) {
@@ -145,16 +149,24 @@ public class DataInstance {
         return Collections.min(getVehicleReleaseList());
     }
 
-    public int getHorizonEnd() {
+    private int getHorizonEndBasedOnDeadline() {
         int longestDur = getTestArr().stream().mapToInt(TestRequest::getDur).max().getAsInt();
         int latestDeadline =getTestArr().stream().mapToInt(TestRequest::getDeadline).max().getAsInt();
         int latestReleaseDay = getTestArr().stream().mapToInt(TestRequest::getRelease).max().getAsInt();
         latestDeadline = Math.max(latestDeadline, latestReleaseDay);
         final int timeSlack = 50;
-        return latestDeadline + longestDur*2 + timeSlack;
+        return latestDeadline + longestDur*4 + timeSlack;
     }
 
     public String getInstID() {
         return instID;
+    }
+
+    public int getHorizonEnd() {
+        return horizonEnd;
+    }
+
+    public void setHorizonEnd(int horizonEnd) {
+        this.horizonEnd = horizonEnd;
     }
 }
